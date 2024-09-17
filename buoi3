@@ -1,0 +1,79 @@
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data;
+using System.Drawing;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Windows.Forms;
+
+namespace BTVNBUOI3
+{
+    public partial class Form1 : Form
+    {
+        public Form1()
+        {
+            InitializeComponent();
+        }
+
+        private void btnAddName_Click(object sender, EventArgs e)
+        {
+            if (!string.IsNullOrEmpty(txtLastName.Text) &&
+                !string.IsNullOrEmpty(txtFirstName.Text) &&
+                !string.IsNullOrEmpty(txtPhone.Text))
+            {
+                string[] row = { txtLastName.Text, txtFirstName.Text, txtPhone.Text };
+                var listViewItem = new ListViewItem(row);
+                listView1.Items.Add(listViewItem);
+                txtLastName.Clear();
+                txtFirstName.Clear();
+                txtPhone.Clear();
+            }
+            else
+            {
+                MessageBox.Show("Vui lòng điền đủ thông tin.");
+            }
+        }
+
+        private void btnXoa_Click(object sender, EventArgs e)
+        {
+            if (listView1.SelectedItems.Count > 0)
+            {
+                listView1.Items.Remove(listView1.SelectedItems[0]);
+
+                // Xóa dữ liệu trong các TextBox sau khi xóa
+                txtLastName.Clear();
+                txtFirstName.Clear();
+                txtPhone.Clear();
+            }
+            else
+            {
+                MessageBox.Show("Vui lòng chọn một dòng để xóa.");
+            }
+        }
+
+        private void btnEdit_Click(object sender, EventArgs e)
+        {
+            if (listView1.SelectedItems.Count > 0)
+            {
+                var selectedItem = listView1.SelectedItems[0];
+                selectedItem.SubItems[0].Text = txtLastName.Text;
+                selectedItem.SubItems[1].Text = txtFirstName.Text;
+                selectedItem.SubItems[2].Text = txtPhone.Text;
+                txtLastName.Clear();
+                txtFirstName.Clear();
+                txtPhone.Clear();
+            }
+            else
+            {
+                MessageBox.Show("Vui lòng chọn một dòng để sửa.");
+            }
+        }
+
+        private void Form1_Load(object sender, EventArgs e)
+        {
+            BackColor = Color.White;
+        }
+    }
+}
