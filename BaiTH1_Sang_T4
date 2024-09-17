@@ -1,0 +1,167 @@
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data;
+using System.Drawing;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Windows.Forms;
+
+namespace Bai2
+{
+    public partial class Form1 : Form
+    {
+        public Form1()
+        {
+            InitializeComponent();
+
+            cmbChuyenNgành.Items.Add("QTKD");
+            cmbChuyenNgành.Items.Add("CNTT");
+            cmbChuyenNgành.Items.Add("NNA");
+            cmbChuyenNgành.SelectedIndex = -1;
+            listView1.ItemSelectionChanged += listView1_ItemSelectionChanged;
+            btnXoa.Click += btnXoa_Click;
+        }
+
+        private void label1_Click(object sender, EventArgs e)
+        {
+            label1.Size = new System.Drawing.Size();
+        }
+        private bool isEditing = false; // Biến để xác định chế độ (Thêm/Sửa)
+        private int selectedIndex = -1;
+
+        private void btnThemSua_Click(object sender, EventArgs e)
+        {
+
+            string gioiTinh = rdoNam.Checked ? "Nam" : rdoNu.Checked ? "Nữ" : "";
+
+            // Kiểm tra các trường dữ liệu khác có đầy đủ không
+            if (!string.IsNullOrEmpty(gioiTinh) &&
+                !string.IsNullOrEmpty(txtMaSV.Text) &&
+                !string.IsNullOrEmpty(txtHoTen.Text) &&
+                !string.IsNullOrEmpty(txtDTB.Text) &&
+                cmbChuyenNgành.SelectedItem != null) // Kiểm tra nếu có chọn một mục trong ComboBox
+            {
+                // Lấy dữ liệu từ ComboBox
+                string khoa = cmbChuyenNgành.SelectedItem.ToString();
+
+                if (isEditing)
+                {
+                    // Nếu đang ở chế độ sửa, thực hiện sửa
+                    if (selectedIndex >= 0 && selectedIndex < listView1.Items.Count)
+                    {
+                        // Cập nhật thông tin dòng được chọn
+                        listView1.Items[selectedIndex].SubItems[0].Text = txtMaSV.Text;
+                        listView1.Items[selectedIndex].SubItems[1].Text = txtHoTen.Text;
+                        listView1.Items[selectedIndex].SubItems[2].Text = gioiTinh;
+                        listView1.Items[selectedIndex].SubItems[3].Text = txtDTB.Text;
+                        listView1.Items[selectedIndex].SubItems[4].Text = khoa;
+
+                        // Đặt lại trạng thái
+                        ResetForm();
+                    }
+                }
+                else
+                {
+                    // Nếu đang ở chế độ thêm, thực hiện thêm mới
+                    string[] row = { txtMaSV.Text, txtHoTen.Text, gioiTinh, txtDTB.Text, khoa };
+
+                    // Tạo ListViewItem với thông tin vừa nhập
+                    var listViewItem = new ListViewItem(row);
+
+                    // Thêm thông tin vào ListView
+                    listView1.Items.Add(listViewItem);
+                    CalculateGenderTotals();
+
+                    // Đặt lại trạng thái
+                    ResetForm();
+                }
+            }
+            else
+            {
+                MessageBox.Show("Vui lòng điền đủ thông tin, chọn giới tính và ngành học.");
+            }
+        }
+        private void listView1_ItemSelectionChanged(object sender, ListViewItemSelectionChangedEventArgs e)
+        {
+            if (e.IsSelected)
+            {
+                // Lấy thông tin từ dòng được chọn
+                txtMaSV.Text = e.Item.SubItems[0].Text;
+                txtHoTen.Text = e.Item.SubItems[1].Text;
+                rdoNam.Checked = e.Item.SubItems[2].Text == "Nam";
+                rdoNu.Checked = e.Item.SubItems[2].Text == "Nữ";
+                txtDTB.Text = e.Item.SubItems[3].Text;
+                cmbChuyenNgành.SelectedItem = e.Item.SubItems[4].Text;
+
+                // Cập nhật trạng thái sửa
+                isEditing = true;
+                selectedIndex = e.Item.Index; // Lưu chỉ số dòng
+                btnThemSua.Text = "Sửa"; // Đổi tên nút về "Sửa"
+            }
+            else
+            {
+                // Nếu không có dòng nào được chọn, đặt lại trạng thái
+                isEditing = false;
+                selectedIndex = -1;
+                btnThemSua.Text = "Thêm";
+            }
+        }
+
+        private void ResetForm()
+        {
+            txtHoTen.Clear();
+            txtMaSV.Clear();
+            txtDTB.Clear();
+            cmbChuyenNgành.SelectedIndex = -1; // Đặt lại ComboBox về trạng thái chưa chọn
+            rdoNam.Checked = false;
+            rdoNu.Checked = false;
+            isEditing = false; // Đặt lại chế độ thêm
+            selectedIndex = -1; // Đặt lại chỉ số dòng
+            btnThemSua.Text = "Thêm"; // Đổi tên nút về "Thêm"
+        }
+        private void CalculateGenderTotals()
+        {
+            int countNam = 0;
+            int countNu = 0;
+
+            // Duyệt qua tất cả các mục trong ListView
+            foreach (ListViewItem item in listView1.Items)
+            {
+                // Kiểm tra giá trị của cột giới tính (cột thứ ba)
+                string gender = item.SubItems[2].Text;
+
+                if (gender == "Nam")
+                {
+                    countNam++;
+                }
+                else if (gender == "Nữ")
+                {
+                    countNu++;
+                }
+            }
+
+            // Cập nhật số lượng vào các TextBox
+            txtTongNam.Text = countNam.ToString();
+            txtTongNu.Text = countNu.ToString();
+        }
+
+
+        private void btnXoa_Click(object sender, EventArgs e)
+        {
+            if (listView1.SelectedItems.Count > 0)
+            {
+                // Xóa mục được chọn
+                listView1.Items.Remove(listView1.SelectedItems[0]);
+
+                // Đặt lại trạng thái và làm mới các trường nhập liệu
+                ResetForm();
+            }
+            else
+            {
+                MessageBox.Show("Vui lòng chọn mục cần xóa.");
+            }
+        }
+    }
+}
